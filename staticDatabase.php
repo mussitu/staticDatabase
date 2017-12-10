@@ -1,19 +1,31 @@
 <?php
 /**
- * Created by Sublime.
- * User: Musu Turay
+ * Created by PhpStorm.
+ * User: kwilliams
  * Date: 10/31/17
  * Time: 9:48 PM
  */
-
+/**
+ * Created by PhpStorm.
+ * User: kwilliams
+ * Date: 10/30/17
+ * Time: 10:37 PM
+ */
 //turn on debugging messages
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
+define('USELOCALSERVER', FALSE);
+
 define('DATABASE', 'mt444');
 define('USERNAME', 'mt444');
 define('PASSWORD', 'ug1Ts82iV');
-define('CONNECTION', 'sql2.njit.edu');
+
+if (USELOCALSERVER) {
+    define('CONNECTION', 'localhost');
+} else {
+    define('CONNECTION', 'sql2.njit.edu');
+}
 
 class dbConn{
     //variable to hold connection object.
@@ -58,8 +70,23 @@ class collection {
         $sql = 'SELECT * FROM ' . $tableName;
         $statement = $db->prepare($sql);
         $statement->execute();
+        echo static::$modelName;
         $class = static::$modelName;
-        $statement->setFetchMode(PDO::FETCH_CLASS, $class);
+        $statement->setFetchMode(\PDO::FETCH_CLASS, $class);
+        $recordsSet =  $statement->fetchAll();
+        return $recordsSet;
+    }
+
+    static public function findAllFor($id) {
+
+        $db = dbConn::getConnection();
+        $tableName = get_called_class();
+        $sql = 'SELECT * FROM ' . $tableName . ' WHERE id =' . $id;
+        $statement = $db->prepare($sql);
+        $statement->execute();
+        echo static::$modelName;
+        $class = static::$modelName;
+        $statement->setFetchMode(\PDO::FETCH_CLASS, $class);
         $recordsSet =  $statement->fetchAll();
         return $recordsSet;
     }
@@ -71,8 +98,9 @@ class collection {
         $sql = 'SELECT * FROM ' . $tableName . ' WHERE id =' . $id;
         $statement = $db->prepare($sql);
         $statement->execute();
+        echo static::$modelName;
         $class = static::$modelName;
-        $statement->setFetchMode(PDO::FETCH_CLASS, $class);
+        $statement->setFetchMode(\PDO::FETCH_CLASS, $class);
         $recordsSet =  $statement->fetchAll();
         return $recordsSet[0];
     }
@@ -209,16 +237,14 @@ class account extends model {
     public $gender;
     public $password;
 
-
-
     public function __construct()
     {
         $this->tableName = 'accounts';
-    
+	
     }
 
     public function insert() {
-        $record = todos::insertOne(array('ownerid' => $this->email,
+        $record = accounts::insertOne(array(email => $this->email,
                                          fname=> $this->fname,
                                          lname=> $this->lname,
                                          phone=> $this->phone,
@@ -229,8 +255,8 @@ class account extends model {
     }
 
     public function update() {
-        todos::updateOne($this->id,
-                              array'ownerid' => $this->email,
+        accounts::updateOne($this->id,
+                		      array(email => $this->email,
                                          fname=> $this->fname,
                                          lname=> $this->lname,
                                          phone=> $this->phone,
@@ -241,16 +267,20 @@ class account extends model {
     }
 
     public function delete() {
-       todos::deleteOne($this->id);
+       accounts::deleteOne($this->id);
     }
     
     protected static function format_to_html_table_header() {
-        return "<tr><td>ownerid</td><td>personalname</td>"
-                . "<td>familyname</td></tr>";
+        return "<tr><td>id</td><td>email</td>"
+                . "<td>fname</td><td>lname</td>"
+                . "<td>phone</td><td>birthday</td>"
+                . "<td>gender</td><td>password</td></tr>";
     }
     protected function format_to_html_table_row() {
-        return "<tr><th>$this->id</th><th>$this->personalname</th>"
-                . "<th>$this->familyname</th></tr>";
+        return "<tr><th>$this->id</th><th>$this->email</th>"
+                . "<th>$this->fname</th><th>$this->lname</th>"
+                . "<th>$this->phone</th><th>$this->birthday</th>"
+                . "<th>$this->gender</th><th>$this->password</th></tr>";
     }
     public static function format_to_html($rows) {
         $result = '<table>' . account::format_to_html_table_header();
@@ -279,7 +309,7 @@ class todo extends model {
     public function __construct()
     {
         $this->tableName = 'todos';
-    
+	
     }
     
     protected static function format_to_html_table_header() {
@@ -409,6 +439,4 @@ print_r($record);
 $record = todos::create();
 print_r($record);
 */
-
-
 
